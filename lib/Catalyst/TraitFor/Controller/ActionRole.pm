@@ -1,7 +1,7 @@
-package Catalyst::Controller::ActionRole;
+package Catalyst::TraitFor::Controller::ActionRole;
 # ABSTRACT: Apply roles to action instances
 
-use Moose;
+use MooseX::Role::Parameterized;
 use Class::MOP;
 use Catalyst::Utils;
 use Moose::Meta::Class;
@@ -9,15 +9,13 @@ use String::RewritePrefix;
 use MooseX::Types::Moose qw/ArrayRef Str RoleName/;
 use List::Util qw(first);
 
-use namespace::clean -except => 'meta';
-
-extends 'Catalyst::Controller';
+use namespace::autoclean;
 
 =head1 SYNOPSIS
 
     package MyApp::Controller::Foo;
 
-    use parent qw/Catalyst::Controller::ActionRole/;
+    with qw/Catalyst::TraitFor::Controller::ActionRole/;
 
     sub bar : Local Does('Moo') { ... }
 
