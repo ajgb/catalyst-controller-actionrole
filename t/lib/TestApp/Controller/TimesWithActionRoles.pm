@@ -2,11 +2,11 @@ package TestApp::Controller::TimesWithActionRoles;
 
 use Moose;
 
-BEGIN { extends 'Catalyst::Controller::ActionRole'; }
+BEGIN { extends 'Catalyst::Controller'; }
 
-__PACKAGE__->config(
+with 'Catalyst::TraitFor::Controller::ActionRole' => {
     action_roles => ['Shared']
-);
+};
 
 sub two  : Local Does('First') {}
 sub three  : Local Does('First') Does('Second') {}

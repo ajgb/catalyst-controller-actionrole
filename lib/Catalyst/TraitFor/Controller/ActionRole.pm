@@ -15,6 +15,8 @@ use namespace::autoclean;
 
     package MyApp::Controller::Foo;
 
+    BEGIN { extends 'Catalyst::Controller'; }
+
     with qw/Catalyst::TraitFor::Controller::ActionRole/;
 
     sub bar : Local Does('Moo') { ... }
@@ -37,11 +39,11 @@ without specifying the C<Does> keyword in every action definition:
 
     package MyApp::Controller::Bar;
 
-    use parent qw/Catalyst::Controller::ActionRole/;
+    BEGIN { extends 'Catalyst::Controller'; }
 
-    __PACKAGE__->config(
+    with 'Catalyst::TraitFor::Controller::ActionRole' => {
         action_roles => ['Foo', '~Bar'],
-    );
+    };
 
     # has Catalyst::ActionRole::Foo and MyApp::ActionRole::Bar applied
     # if MyApp::ActionRole::Foo exists and is loadable, it will take
@@ -54,7 +56,9 @@ L<Catalyst::Controller/action_args>:
 
     package MyApp::Controller::Baz;
 
-    use parent qw/Catalyst::Controller::ActionRole/;
+    BEGIN { extends 'Catalyst::Controller'; }
+
+    with 'Catalyst::TraitFor::Controller::ActionRole';
 
     __PACKAGE__->config(
         action_roles => [qw( Foo )],
@@ -74,93 +78,125 @@ L<Catalyst::Controller/action_args>:
     # and associated action class would get additional arguments passed
     sub another_action : Local { ... }
 
+Please note that above example shows C<action_roles> specified with
+C<__PACKAGE__-E<gt>config()>.
+
+=head1 PARAMETERS
+
+This module can be configured with following parameters.
+
+=head2 action_role_prefix
+
+This class attribute stores an array reference of role prefixes to search for
+role names in if they aren't prefixed with C<+> or C<~>. It defaults to
+C<[ 'Catalyst::ActionRole::' ]>.  See L</role prefix searching>.
+
+=head2 action_roles
+
+This attribute stores an array reference of role names that will be applied to
+every action of this controller. It can be set by passing an C<action_roles>
+argument as the role parameter or via C<__PACKAGE__-E<gt>config()>.
+The same expansions as for C<Does> will be performed.
+
+Please note that roles specified with action_roles are not applied to methods
+with names starting with underscore.
+
+=head1 ATTRIBUTES
+
+=head2 _action_role_prefix
+
+Returns the value of L</action_role_prefix> role parameter.
+
+=head2 _action_roles
+
+Returns the value of L</action_roles> role parameter.
+
+=cut
+
+parameter action_role_prefix => (
+    is         => 'rw',
+    isa        => ArrayRef[Str],
+    default    => sub { ['Catalyst::ActionRole::'] },
+);
+
+parameter action_roles => (
+    is         => 'rw',
+    isa        => ArrayRef[Str],
+    default    => sub { [] },
+);
 
 =head1 ROLE PREFIX SEARCHING
 
 Roles specified with no prefix are looked up under a set of role prefixes.  The
 first prefix is always C<MyApp::ActionRole::> (with C<MyApp> replaced as
 appropriate for your application); the following prefixes are taken from the
-C<_action_role_prefix> attribute.
+L</action_role_prefix> parameter.
 
-=attr _action_role_prefix
+=head1 SEE ALSO
 
-This class attribute stores an array reference of role prefixes to search for
-role names in if they aren't prefixed with C<+> or C<~>. It defaults to
-C<[ 'Catalyst::ActionRole::' ]>.  See L</role prefix searching>.
-
-=cut
-
-__PACKAGE__->mk_classdata(qw/_action_role_prefix/);
-__PACKAGE__->_action_role_prefix([ 'Catalyst::ActionRole::' ]);
-
-=attr _action_roles
-
-This attribute stores an array reference of role names that will be applied to
-every action of this controller. It can be set by passing a C<action_roles>
-argument to the constructor. The same expansions as for C<Does> will be
-performed.
+This module can be used as drop in replacement for
+L<Catalyst::Controller::ActionRole> upon which it was heavily based.
 
 =cut
 
-has _action_role_args => (
-    is         => 'ro',
-    isa        => ArrayRef[Str],
-    init_arg   => undef,
-    lazy_build => 1,
-);
-
-has _action_roles => (
-    traits     => [qw(Array)],
-    isa        => ArrayRef[RoleName],
-    init_arg   => undef,
-    lazy_build => 1,
-    handles    => {
-        _action_roles => 'elements',
-    },
-);
-
-sub _build__action_roles {
-    my $self = shift;
-    return $self->_action_role_args;
-}
-
-sub _build__action_role_args {
-    my $self = shift;
-    my @roles;
-    if ( my $config = $self->config ) {
-        if ( my $action_roles = $config->{action_roles} ) {
-            @roles = $self->_expand_role_shortname(@$action_roles);
-            Class::MOP::load_class($_) for @roles;
-        }
-    }
-    
-    return \@roles;
-}
-
-sub BUILD {
-    my $self = shift;
-    # force this to run at object creation time
-    $self->_action_role_args;
-    # check if action_roles are RoleNames
-    $self->_action_roles;
-}
-
-around 'create_action' => sub {
-    my $orig = shift;
-    my $self = shift;
+role {
+    my $p = shift;
     my %args = @_;
+    my $consumer = $args{consumer};
 
-    my $action = $self->$orig(%args);
+    has _action_roles => (
+        traits      => [qw(Array)],
+        isa         => ArrayRef[RoleName],
+        lazy_build  => 1,
+        handles     => {
+            _action_roles => 'elements',
+        },
+    );
 
-    # XXX find a way to distinguish from actions registered in the
-    # C::Controller and those in MyApp::Controller::Foo and its parents
+    has _action_role_prefix => (
+        is          => 'rw',
+        isa         => ArrayRef[Str],
+        default     => sub { $p->action_role_prefix },
+    );
 
-    # don't apply roles to default Catalyst::Controller actions
-    unless ( grep { /^_(DISPATCH|BEGIN|AUTO|ACTION|END)$/ } $class->name ) {
-        my @roles = ($self->_action_roles, @{ $class->attributes->{Does} || [] });
+    method '_build__action_roles' => sub {
+        my $self = shift;
+
+        my @roles = $self->_expand_role_shortname( @{ $p->action_roles } );
+
+        if ( my $config = $self->config ) {
+            if ( my $action_roles = $config->{action_roles} ) {
+                push @roles, $self->_expand_role_shortname(@$action_roles);
+            }
+        }
+
+        Class::MOP::load_class($_) for @roles;
+
+        return \@roles; 
+    };
+
+    # load all action_roles at object creation time
+    sub BUILD {
+        shift->_action_roles;
+    };
+
+    around 'create_action' => sub {
+        my $orig = shift;
+        my $self = shift;
+        my %args = @_;
+
+        my $action = $self->$orig(%args);
+
+        my @roles = (
+            # don't apply "global" action_roles to private actions
+            ( $action->name =~ /^_/ ? () : $self->_action_roles ),
+            # roles set by Does are applied as requested
+            @{ $action->attributes->{Does} || [] }
+        );
+
         if (@roles) {
             my $meta = $action->meta->create_anon_class(
-                superclasses => [ref $class],
+                superclasses => [ref $action],
                 roles        => \@roles,
                 cache        => 1,
             );
@@ -169,37 +205,35 @@ around 'create_action' => sub {
 
             $action = $sub_class->new( \%args );
         }
-    }
 
-    return $action;
+        return $action;
+    };
+
+    method '_expand_role_shortname' => sub {
+        my ($self, @shortnames) = @_;
+        my $app = $self->_application;
+
+        my @prefixes = (qq{${app}::ActionRole::}, @{ $self->_action_role_prefix });
+
+        return String::RewritePrefix->rewrite(
+            { ''  => sub {
+                my $loaded = Class::MOP::load_first_existing_class(
+                    map { "$_$_[0]" } @prefixes
+                );
+                return first { $loaded =~ /^$_/ }
+                  sort { length $b <=> length $a } @prefixes;
+              },
+              '~' => $prefixes[0],
+              '+' => '' },
+            @shortnames,
+        );
+    };
+
+    method '_parse_Does_attr' => sub {
+        my ($self, $app, $name, $value) = @_;
+        return Does => $self->_expand_role_shortname($value);
+    };
 };
-
-
-sub _expand_role_shortname {
-    my ($self, @shortnames) = @_;
-    my $app = $self->_application;
-
-    my $prefix = $self->can('_action_role_prefix') ? $self->_action_role_prefix : ['Catalyst::ActionRole::'];
-    my @prefixes = (qq{${app}::ActionRole::}, @$prefix);
-
-    return String::RewritePrefix->rewrite(
-        { ''  => sub {
-            my $loaded = Class::MOP::load_first_existing_class(
-                map { "$_$_[0]" } @prefixes
-            );
-            return first { $loaded =~ /^$_/ }
-              sort { length $b <=> length $a } @prefixes;
-          },
-          '~' => $prefixes[0],
-          '+' => '' },
-        @shortnames,
-    );
-}
-
-sub _parse_Does_attr {
-    my ($self, $app, $name, $value) = @_;
-    return Does => $self->_expand_role_shortname($value);
-}
 
 =begin Pod::Coverage
 
