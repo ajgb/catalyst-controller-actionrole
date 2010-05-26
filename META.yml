@@ -2,6 +2,8 @@
 abstract: 'Apply roles to action instances'
 author:
   - 'Alex J. G. Burzyński <ajgb@cpan.org>'
+  - 'Florian Ragwitz <rafl@debian.org>'
+  - 'Hans Dieter Pearcey <hdp@weftsoar.net>'
 build_requires:
   Test::More: 0
 configure_requires:
@@ -13,6 +15,9 @@ meta-spec:
   version: 1.4
 name: Catalyst-TraitFor-Controller-ActionRole
 provides:
+  Catalyst::Controller::ActionRole:
+    file: lib/Catalyst/Controller/ActionRole.pm
+    version: 0.15
   Catalyst::TraitFor::Controller::ActionRole:
     file: lib/Catalyst/TraitFor/Controller/ActionRole.pm
     version: 0.01
@@ -26,5 +31,5 @@ requires:
   String::RewritePrefix: 0.004
   namespace::clean: 0
 resources:
-  license: http://dev.perl.org/licenses/
+  repository: git://github.com/ajgb/catalyst-controller-actionrole.git
 version: 0.01
