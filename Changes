@@ -1,3 +1,12 @@
+0.01 Wed May 26 11:29:09 2010
+    Release as trait for controller.
+
+
+-- Catalyst::Controller::ActionRole changes --
+
+0.15  Wed, 26 May 2010 19:20:41 GMT
+  * Deprecate in favour of Catalyst::TraitFor::Controller::ActionRole (AJGB).
+
 0.14  Sun, 02 May 2010 00:58:39 +0200
   * Add repository metadata (Tomas Doran).
 
