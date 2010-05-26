@@ -1,15 +1,19 @@
 package Catalyst::TraitFor::Controller::ActionRole;
 # ABSTRACT: Apply roles to action instances
 
+
 use MooseX::Role::Parameterized;
 use Class::MOP;
-use Catalyst::Utils;
 use Moose::Meta::Class;
 use String::RewritePrefix;
 use MooseX::Types::Moose qw/ArrayRef Str RoleName/;
 use List::Util qw(first);
 
 use namespace::autoclean;
+
+our $VERSION = '0.01';
+
+=encoding utf8
 
 =head1 SYNOPSIS
 
@@ -132,11 +136,6 @@ first prefix is always C<MyApp::ActionRole::> (with C<MyApp> replaced as
 appropriate for your application); the following prefixes are taken from the
 L</action_role_prefix> parameter.
 
-=head1 SEE ALSO
-
-This module can be used as drop in replacement for
-L<Catalyst::Controller::ActionRole> upon which it was heavily based.
-
 =cut
 
 role {
@@ -241,6 +240,31 @@ role {
 
 =end Pod::Coverage
 
+=head1 AUTHOR
+
+Alex J. G. Burzyński, C<< <ajgb at cpan.org> >>
+
+=head1 BUGS
+
+Please report any bugs or feature requests to C<bug-catalyst-traitfor-controller-actionrole at rt.cpan.org>, or through
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Catalyst-TraitFor-Controller-ActionRole>.  I will be notified, and then you'll
+automatically be notified of progress on your bug as I make changes.
+
+=head1 ACKNOWLEDGEMENTS
+
+This module wouldn't exists without L<Catalyst::Controller::ActionRole>
+upon which it is heavily based.
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2010 Alex J. G. Burzyński.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation; or the Artistic License.
+
+See http://dev.perl.org/licenses/ for more information.
+
 =cut
 
-1;
+1; # End of Catalyst::TraitFor::Controller::ActionRole
