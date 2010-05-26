@@ -1,3 +1,9 @@
+0.01 Wed May 26 11:29:09 2010
+    Release as trait for controller.
+
+
+-- Catalyst::Controller::ActionRole changes --
+
 0.14  Sun, 02 May 2010 00:58:39 +0200
   * Add repository metadata (Tomas Doran).
 
