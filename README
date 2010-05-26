@@ -108,8 +108,10 @@ ROLE PREFIX SEARCHING
     replaced as appropriate for your application); the following prefixes
     are taken from the "action_role_prefix" parameter.
 
-AUTHOR
-    Alex J. G. Burzyński, "<ajgb at cpan.org>"
+AUTHORS
+        Alex J. G. Burzyński <ajgb@cpan.org>
+        Florian Ragwitz <rafl@debian.org>
+        Hans Dieter Pearcey <hdp@weftsoar.net>
 
 BUGS
     Please report any bugs or feature requests to
@@ -120,8 +122,8 @@ BUGS
     notified of progress on your bug as I make changes.
 
 ACKNOWLEDGEMENTS
-    This module wouldn't exists without Catalyst::Controller::ActionRole
-    upon which it is heavily based.
+    This module wouldn't exists without initial
+    Catalyst::Controller::ActionRole upon which it is heavily based.
 
 LICENSE AND COPYRIGHT
     Copyright 2010 Alex J. G. Burzyński.
