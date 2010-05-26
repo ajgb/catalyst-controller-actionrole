@@ -1,0 +1,30 @@
+---
+abstract: 'Apply roles to action instances'
+author:
+  - 'Alex J. G. Burzyński <ajgb@cpan.org>'
+build_requires:
+  Test::More: 0
+configure_requires:
+  Module::Build: 0.36
+generated_by: 'Module::Build version 0.3605'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Catalyst-TraitFor-Controller-ActionRole
+provides:
+  Catalyst::TraitFor::Controller::ActionRole:
+    file: lib/Catalyst/TraitFor/Controller/ActionRole.pm
+    version: 0.01
+requires:
+  Catalyst::Runtime: 5.71001
+  Class::MOP: 0.80
+  List::Util: 0
+  Moose: 0.90
+  MooseX::Role::Parameterized: 0.18
+  MooseX::Types::Moose: 0
+  String::RewritePrefix: 0.004
+  namespace::clean: 0
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.01
